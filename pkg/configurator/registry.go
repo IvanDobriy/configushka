@@ -5,3 +5,5 @@ import "io"
 type Registry interface {
 	Get(key string) (r io.Reader)
 }
+
+var registry = map[string]Registry{}
