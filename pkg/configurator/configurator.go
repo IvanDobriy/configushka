@@ -1,18 +1,30 @@
 package configurator
 
+import "strings"
+
 type Configurator interface {
-	Configure(agents []Agent) error
+	Configure() error
 }
 
-func NewConfigurator() Configurator {
-	configurator := &ConfiguratorImpl{}
+func NewConfigurator(rootAgents []Agent) Configurator {
+	configurator := &ConfiguratorImpl{
+		rootAgents: rootAgents,
+	}
 	return configurator
 }
 
 type ConfiguratorImpl struct {
+	rootAgents []Agent
 }
 
-func (c *ConfiguratorImpl) Configure(agents []Agent) error {
+func (c *ConfiguratorImpl) Configure() error {
+	r := NewRegistry()
+	registeredAgents := r.GetAll()
+	conf := strings.NewReader("hello, world")
+	for _, agent := range registeredAgents {
+		conf.Seek(0, 0)
+		agent.Update(conf)
+	}
 	return nil
 }
 
