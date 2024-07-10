@@ -6,20 +6,19 @@ type Configurator interface {
 	Configure() error
 }
 
-func NewConfigurator(rootAgents []Agent) Configurator {
-	configurator := &ConfiguratorImpl{}
-	for _, agent := range rootAgents {
-		agent.register()
+func NewConfigurator(registry Registry) Configurator {
+	configurator := &configuratorImpl{
+		registry: registry,
 	}
 	return configurator
 }
 
-type ConfiguratorImpl struct {
+type configuratorImpl struct {
+	registry Registry
 }
 
-func (c *ConfiguratorImpl) Configure() error {
-	r := getModuleRegistry()
-	registeredAgents := r.getAll()
+func (c *configuratorImpl) Configure() error {
+	registeredAgents := c.registry.getAll()
 	conf := strings.NewReader("hello, world")
 	for _, agent := range registeredAgents {
 		conf.Seek(0, 0)

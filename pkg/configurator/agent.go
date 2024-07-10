@@ -14,7 +14,7 @@ type Agent interface {
 	parentExists() bool
 	moduleName() string
 	isConfigured(time time.Time) bool
-	register()
+	signUp(registry Registry)
 }
 
 func NewAgent(name string, updateCallback UpdateFunc) Agent {
@@ -84,10 +84,9 @@ func (a *agentImpl) isConfigured(time time.Time) bool {
 	return a.time != nil
 }
 
-func (a *agentImpl) register() {
-	r := getModuleRegistry()
-	r.set(a.name, a)
+func (a *agentImpl) signUp(registry Registry) {
+	registry.set(a.name, a)
 	for _, agent := range a.childrens {
-		r.set(agent.moduleName(), agent)
+		registry.set(agent.moduleName(), agent)
 	}
 }
