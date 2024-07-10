@@ -28,12 +28,20 @@ type configuratorImpl struct {
 func (c *configuratorImpl) Configure() (err error) {
 	registeredAgents := c.registry.getAll()
 	if len(c.paths) == 0 {
+		return errors.New("configuration file paths is empty")
+	}
+	var conf *os.File = nil
+	for _, path := range c.paths {
+		file, error := os.OpenFile(path, os.O_RDONLY, 0640)
+		if error == nil {
+			conf = file
+			break
+		}
+	}
+	if conf == nil {
 		return errors.New("no config files found")
 	}
-	conf, err := os.OpenFile(c.paths[0], os.O_RDONLY, 0640)
-	if err != nil {
-		return
-	}
+
 	defer func() {
 		err = conf.Close()
 	}()
