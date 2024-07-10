@@ -9,7 +9,7 @@ type UpdateFunc func(r io.Reader) error
 
 type Agent interface {
 	Require(agent Agent) error
-	Update(r io.Reader) error
+	update(r io.ReadSeeker) error
 	addParent(agent Agent) error
 	parentExists() bool
 	moduleName() string
@@ -42,7 +42,7 @@ func (a *AgentImpl) Require(agent Agent) error {
 	return nil
 }
 
-func (a *AgentImpl) Update(r io.Reader) error {
+func (a *AgentImpl) update(r io.ReadSeeker) error {
 	var leaf Agent = nil
 	for _, agent := range a.childrens {
 		if agent.parentExists() {
@@ -53,8 +53,13 @@ func (a *AgentImpl) Update(r io.Reader) error {
 	if leaf == nil {
 		return nil
 	}
+	r.Seek(0, 0)
 	if err := a.updateCallback(r); err != nil {
 		return err
+	}
+	for _, agent := range a.parents {
+		r.Seek(0, 0)
+		agent.update(r)
 	}
 	return nil
 }
