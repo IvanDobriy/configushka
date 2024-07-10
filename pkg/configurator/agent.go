@@ -11,7 +11,7 @@ type Agent interface {
 	Require(agent Agent) error
 	update(r io.ReadSeeker) error
 	addParent(agent Agent) error
-	parentExists() bool
+	childrenExists() bool
 	moduleName() string
 	isConfigured(time time.Time) bool
 	signUp(registry Registry)
@@ -48,13 +48,15 @@ func (a *agentImpl) update(r io.ReadSeeker) error {
 	}
 	var leaf Agent = nil
 	for _, agent := range a.childrens {
-		if agent.parentExists() {
+		if !agent.isConfigured(time.Now()) {
 			leaf = agent
 			break
 		}
 	}
-	if leaf == nil {
-		return nil
+	if leaf != nil {
+		if err := leaf.update(r); err != nil {
+			return err
+		}
 	}
 	r.Seek(0, 0)
 	if err := a.updateCallback(r); err != nil {
@@ -76,7 +78,7 @@ func (a *agentImpl) addParent(agent Agent) error {
 	return nil
 }
 
-func (a *agentImpl) parentExists() bool {
+func (a *agentImpl) childrenExists() bool {
 	return len(a.parents) > 0
 }
 
