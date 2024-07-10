@@ -12,6 +12,7 @@ type Configurator interface {
 func NewConfigurator(registry Registry, configPaths []string) Configurator {
 	configurator := &configuratorImpl{
 		registry: registry,
+		paths:    configPaths,
 	}
 	return configurator
 }
