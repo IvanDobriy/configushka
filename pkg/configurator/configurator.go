@@ -43,7 +43,9 @@ func (c *configuratorImpl) Configure() (err error) {
 	}
 
 	defer func() {
-		err = conf.Close()
+		if error := conf.Close(); error != nil {
+			err = error
+		}
 	}()
 	for _, agent := range registeredAgents {
 		if err = agent.update(conf, c.format); err != nil {
