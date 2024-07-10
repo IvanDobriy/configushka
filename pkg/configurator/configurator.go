@@ -10,7 +10,7 @@ type Configurator interface {
 	Configure() error
 }
 
-func NewConfigurator(registry Registry, configPaths []string, format string) Configurator {
+func NewLocalConfigurator(registry Registry, configPaths []string, format string) Configurator {
 	configurator := &configuratorImpl{
 		registry: registry,
 		paths:    configPaths,
