@@ -68,7 +68,9 @@ func (a *agentImpl) update(r io.ReadSeeker, format string) error {
 	}
 	a.time = &now
 	for _, agent := range a.parents {
-		agent.update(r, format)
+		if err := agent.update(r, format); err != nil {
+			return err
+		}
 	}
 	return nil
 }
