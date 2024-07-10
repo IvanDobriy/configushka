@@ -7,27 +7,23 @@ type Configurator interface {
 }
 
 func NewConfigurator(rootAgents []Agent) Configurator {
-	configurator := &ConfiguratorImpl{
-		rootAgents: rootAgents,
+	configurator := &ConfiguratorImpl{}
+	for _, agent := range rootAgents {
+		agent.register()
 	}
 	return configurator
 }
 
 type ConfiguratorImpl struct {
-	rootAgents []Agent
 }
 
 func (c *ConfiguratorImpl) Configure() error {
-	r := NewRegistry()
-	registeredAgents := r.GetAll()
+	r := getModuleRegistry()
+	registeredAgents := r.getAll()
 	conf := strings.NewReader("hello, world")
 	for _, agent := range registeredAgents {
 		conf.Seek(0, 0)
-		agent.Update(conf)
+		agent.update(conf)
 	}
-	return nil
-}
-
-func (c *ConfiguratorImpl) update(agent *Agent) error {
 	return nil
 }

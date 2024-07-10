@@ -13,22 +13,22 @@ type Agent interface {
 	addParent(agent Agent) error
 	parentExists() bool
 	moduleName() string
+	isConfigured(time time.Time) bool
+	register()
 }
 
 func NewAgent(name string, updateCallback UpdateFunc) Agent {
-	agent := &AgentImpl{
+	agent := &agentImpl{
 		name:           name,
 		parents:        make(map[string]Agent),
 		childrens:      make(map[string]Agent),
 		updateCallback: updateCallback,
 		time:           nil,
 	}
-	r := NewRegistry()
-	r.Set(agent.name, agent)
 	return agent
 }
 
-type AgentImpl struct {
+type agentImpl struct {
 	name           string
 	parents        map[string]Agent
 	childrens      map[string]Agent
@@ -36,13 +36,16 @@ type AgentImpl struct {
 	time           *time.Time
 }
 
-func (a *AgentImpl) Require(agent Agent) error {
+func (a *agentImpl) Require(agent Agent) error {
 	_ = agent.addParent(a)
 	a.childrens[agent.moduleName()] = agent
 	return nil
 }
 
-func (a *AgentImpl) update(r io.ReadSeeker) error {
+func (a *agentImpl) update(r io.ReadSeeker) error {
+	if a.isConfigured(time.Now()) {
+		return nil
+	}
 	var leaf Agent = nil
 	for _, agent := range a.childrens {
 		if agent.parentExists() {
@@ -64,15 +67,27 @@ func (a *AgentImpl) update(r io.ReadSeeker) error {
 	return nil
 }
 
-func (a *AgentImpl) moduleName() string {
+func (a *agentImpl) moduleName() string {
 	return a.name
 }
 
-func (a *AgentImpl) addParent(agent Agent) error {
+func (a *agentImpl) addParent(agent Agent) error {
 	a.parents[agent.moduleName()] = agent
 	return nil
 }
 
-func (a *AgentImpl) parentExists() bool {
+func (a *agentImpl) parentExists() bool {
 	return len(a.parents) > 0
+}
+
+func (a *agentImpl) isConfigured(time time.Time) bool {
+	return a.time != nil
+}
+
+func (a *agentImpl) register() {
+	r := getModuleRegistry()
+	r.set(a.name, a)
+	for _, agent := range a.childrens {
+		r.set(agent.moduleName(), agent)
+	}
 }

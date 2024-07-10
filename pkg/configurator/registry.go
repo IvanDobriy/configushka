@@ -1,32 +1,32 @@
 package configurator
 
-type Registry interface {
-	Get(key string) Agent
-	Set(key string, agent Agent)
-	GetAll() []Agent
+type registry interface {
+	get(key string) Agent
+	set(key string, agent Agent)
+	getAll() []Agent
 }
 
-var registry = map[string]Agent{}
+var __registry = map[string]Agent{}
 
-func NewRegistry() Registry {
-	r := &RegistryImpl{}
+func getModuleRegistry() registry {
+	r := &moduleRegistry{}
 	return r
 }
 
-type RegistryImpl struct {
+type moduleRegistry struct {
 }
 
-func (r *RegistryImpl) Get(key string) Agent {
-	return registry[key]
+func (r *moduleRegistry) get(key string) Agent {
+	return __registry[key]
 }
 
-func (r *RegistryImpl) Set(key string, agent Agent) {
-	registry[key] = agent
+func (r *moduleRegistry) set(key string, agent Agent) {
+	__registry[key] = agent
 }
 
-func (r *RegistryImpl) GetAll() []Agent {
-	list := make([]Agent, 0, len(registry))
-	for _, value := range registry {
+func (r *moduleRegistry) getAll() []Agent {
+	list := make([]Agent, 0, len(__registry))
+	for _, value := range __registry {
 		list = append(list, value)
 	}
 	return list
