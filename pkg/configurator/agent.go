@@ -43,12 +43,13 @@ func (a *agentImpl) Require(agent Agent) error {
 }
 
 func (a *agentImpl) update(r io.ReadSeeker) error {
-	if a.isConfigured(time.Now()) {
+	now := time.Now()
+	if a.isConfigured(now) {
 		return nil
 	}
 	var leaf Agent = nil
 	for _, agent := range a.childrens {
-		if !agent.isConfigured(time.Now()) {
+		if !agent.isConfigured(now) {
 			leaf = agent
 			break
 		}
@@ -58,11 +59,13 @@ func (a *agentImpl) update(r io.ReadSeeker) error {
 			return err
 		}
 	}
+	if a.isConfigured(now) {
+		return nil
+	}
 	r.Seek(0, 0)
 	if err := a.updateCallback(r); err != nil {
 		return err
 	}
-	now := time.Now()
 	a.time = &now
 	for _, agent := range a.parents {
 		r.Seek(0, 0)
