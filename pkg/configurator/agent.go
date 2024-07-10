@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-type UpdateFunc func(r io.Reader) error
+type UpdateFunc func(r io.Reader, format string) error
 
 type Agent interface {
 	Require(agent Agent) error
-	update(r io.ReadSeeker) error
+	update(r io.ReadSeeker, format string) error
 	addParent(agent Agent) error
 	childrenExists() bool
 	moduleName() string
@@ -42,7 +42,7 @@ func (a *agentImpl) Require(agent Agent) error {
 	return nil
 }
 
-func (a *agentImpl) update(r io.ReadSeeker) error {
+func (a *agentImpl) update(r io.ReadSeeker, format string) error {
 	now := time.Now()
 	if a.isConfigured(now) {
 		return nil
@@ -55,7 +55,7 @@ func (a *agentImpl) update(r io.ReadSeeker) error {
 		}
 	}
 	if leaf != nil {
-		if err := leaf.update(r); err != nil {
+		if err := leaf.update(r, format); err != nil {
 			return err
 		}
 	}
@@ -63,13 +63,12 @@ func (a *agentImpl) update(r io.ReadSeeker) error {
 		return nil
 	}
 	r.Seek(0, 0)
-	if err := a.updateCallback(r); err != nil {
+	if err := a.updateCallback(r, format); err != nil {
 		return err
 	}
 	a.time = &now
 	for _, agent := range a.parents {
-		r.Seek(0, 0)
-		agent.update(r)
+		agent.update(r, format)
 	}
 	return nil
 }

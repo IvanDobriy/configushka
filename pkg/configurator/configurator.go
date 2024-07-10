@@ -9,10 +9,11 @@ type Configurator interface {
 	Configure() error
 }
 
-func NewConfigurator(registry Registry, configPaths []string) Configurator {
+func NewConfigurator(registry Registry, configPaths []string, format string) Configurator {
 	configurator := &configuratorImpl{
 		registry: registry,
 		paths:    configPaths,
+		format:   format,
 	}
 	return configurator
 }
@@ -20,6 +21,7 @@ func NewConfigurator(registry Registry, configPaths []string) Configurator {
 type configuratorImpl struct {
 	registry Registry
 	paths    []string
+	format   string
 }
 
 func (c *configuratorImpl) Configure() error {
@@ -32,8 +34,7 @@ func (c *configuratorImpl) Configure() error {
 		return error
 	}
 	for _, agent := range registeredAgents {
-		conf.Seek(0, 0)
-		agent.update(conf)
+		agent.update(conf, c.format)
 	}
 	return nil
 }
