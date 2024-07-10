@@ -46,7 +46,9 @@ func (c *configuratorImpl) Configure() (err error) {
 		err = conf.Close()
 	}()
 	for _, agent := range registeredAgents {
-		agent.update(conf, c.format)
+		if err = agent.update(conf, c.format); err != nil {
+			return
+		}
 	}
 	return
 }
