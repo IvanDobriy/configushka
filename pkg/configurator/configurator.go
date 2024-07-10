@@ -3,6 +3,7 @@ package configurator
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 type Configurator interface {
@@ -13,7 +14,7 @@ func NewConfigurator(registry Registry, configPaths []string, format string) Con
 	configurator := &configuratorImpl{
 		registry: registry,
 		paths:    configPaths,
-		format:   format,
+		format:   strings.ToLower(format),
 	}
 	return configurator
 }
