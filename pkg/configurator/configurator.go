@@ -25,17 +25,20 @@ type configuratorImpl struct {
 	format   string
 }
 
-func (c *configuratorImpl) Configure() error {
+func (c *configuratorImpl) Configure() (err error) {
 	registeredAgents := c.registry.getAll()
 	if len(c.paths) == 0 {
 		return errors.New("no config files found")
 	}
-	conf, error := os.OpenFile(c.paths[0], os.O_RDONLY, 0640)
-	if error != nil {
-		return error
+	conf, err := os.OpenFile(c.paths[0], os.O_RDONLY, 0640)
+	if err != nil {
+		return
 	}
+	defer func() {
+		err = conf.Close()
+	}()
 	for _, agent := range registeredAgents {
 		agent.update(conf, c.format)
 	}
-	return nil
+	return
 }
