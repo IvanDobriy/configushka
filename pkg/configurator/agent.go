@@ -62,6 +62,8 @@ func (a *agentImpl) update(r io.ReadSeeker) error {
 	if err := a.updateCallback(r); err != nil {
 		return err
 	}
+	now := time.Now()
+	a.time = &now
 	for _, agent := range a.parents {
 		r.Seek(0, 0)
 		agent.update(r)
