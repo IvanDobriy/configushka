@@ -215,3 +215,16 @@ func TestReplacement(t *testing.T) {
 	err = agent1.signUp(registry)
 	assert.NotNil(err)
 }
+
+func TestReplacementNoError(t *testing.T) {
+	assert := assertions.New(t)
+	someError := errors.New("some error")
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		return someError
+	})
+	agent1.Require(agent1)
+	registry, err := NewModuleRegistry([]Agent{})
+	assert.Nil(err)
+	err = agent1.signUp(registry)
+	assert.Nil(err)
+}
