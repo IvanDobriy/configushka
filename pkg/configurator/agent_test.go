@@ -3,6 +3,7 @@ package configurator
 import (
 	"bufio"
 	"cmp"
+	"errors"
 	assertions "github.com/stretchr/testify/assert"
 	"io"
 	"slices"
@@ -111,16 +112,19 @@ func TestUpdate(t *testing.T) {
 	agent2Settings := ""
 	agent1Format := ""
 	agent2Format := ""
+	sequence := make([]string, 0)
 	agent1 := NewAgent("1", func(r io.Reader, format string) error {
 		bufReader := bufio.NewReader(r)
 		agent1Settings, _ = bufReader.ReadString('\n')
 		agent1Format = format
+		sequence = append(sequence, "1")
 		return nil
 	})
 	agent2 := NewAgent("2", func(r io.Reader, format string) error {
 		bufReader := bufio.NewReader(r)
 		agent2Settings, _ = bufReader.ReadString('\n')
 		agent2Format = format
+		sequence = append(sequence, "2")
 		return nil
 	})
 	_ = agent1.Require(agent2)
@@ -133,4 +137,44 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(expectedSettings, agent2Settings)
 	assert.Equal(expectedFormat, agent1Format)
 	assert.Equal(expectedFormat, agent2Format)
+	assert.Equal([]string{"2", "1"}, sequence)
+}
+
+func TestUpdateChildReturnError(t *testing.T) {
+	assert := assertions.New(t)
+	now := time.Now()
+	agent1Settings := ""
+	agent2Settings := ""
+	agent1Format := ""
+	agent2Format := ""
+	sequence := make([]string, 0)
+	someError := errors.New("some error")
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		bufReader := bufio.NewReader(r)
+		agent1Settings, _ = bufReader.ReadString('\n')
+		agent1Format = format
+		sequence = append(sequence, "1")
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		bufReader := bufio.NewReader(r)
+		agent2Settings, _ = bufReader.ReadString('\n')
+		agent2Format = format
+		sequence = append(sequence, "2")
+		return someError
+	})
+	_ = agent1.Require(agent2)
+	buffer := strings.NewReader("hello, world\n")
+	reader := io.NewSectionReader(buffer, 0, buffer.Size())
+	err := agent1.update(reader, "123")
+	expectedSettings := "hello, world\n"
+	expectedFormat := "123"
+	assert.Equal(someError, err)
+	assert.Equal("", agent1Settings)
+	assert.Equal(expectedSettings, agent2Settings)
+	assert.Equal("", agent1Format)
+	assert.Equal(expectedFormat, agent2Format)
+	assert.Equal([]string{"2"}, sequence)
+	assert.False(agent1.isConfigured(now))
+	assert.False(agent2.isConfigured(now))
 }
