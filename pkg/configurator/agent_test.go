@@ -3,7 +3,9 @@ package configurator
 import (
 	assertions "github.com/stretchr/testify/assert"
 	"io"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestModuleName(t *testing.T) {
@@ -67,4 +69,21 @@ func TestChildrenExists(t *testing.T) {
 	})
 	_ = agent1.Require(agent2)
 	assert.True(agent1.childrenExists())
+}
+
+func TestIsConfigured(t *testing.T) {
+	assert := assertions.New(t)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
+	_ = agent1.Require(agent2)
+	now := time.Now()
+	assert.False(agent1.isConfigured(now))
+	assert.False(agent2.isConfigured(now))
+
+	_ = agent1.Require(agent2)
+	buffer := strings.NewReader("hello, world")
+	reader := io.NewSectionReader(buffer, 0, buffer.Size())
+	agent2.update(reader, "123")
+	assert.True(agent1.isConfigured(now))
+	assert.True(agent2.isConfigured(now))
 }
