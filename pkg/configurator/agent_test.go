@@ -1,8 +1,11 @@
 package configurator
 
 import (
+	"bufio"
+	"cmp"
 	assertions "github.com/stretchr/testify/assert"
 	"io"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -86,4 +89,48 @@ func TestIsConfigured(t *testing.T) {
 	agent2.update(reader, "123")
 	assert.True(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
+}
+
+func TestSignUp(t *testing.T) {
+	assert := assertions.New(t)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
+	_ = agent1.Require(agent2)
+	registry := NewModuleRegistry([]Agent{})
+	agent1.signUp(registry)
+	result := registry.getAll()
+	slices.SortFunc(result, func(a, b Agent) int {
+		return cmp.Compare(a.moduleName(), b.moduleName())
+	})
+	assert.Equal([]Agent{agent1, agent2}, result)
+}
+
+func TestUpdate(t *testing.T) {
+	assert := assertions.New(t)
+	agent1Settings := ""
+	agent2Settings := ""
+	agent1Format := ""
+	agent2Format := ""
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		bufReader := bufio.NewReader(r)
+		agent1Settings, _ = bufReader.ReadString('\n')
+		agent1Format = format
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		bufReader := bufio.NewReader(r)
+		agent2Settings, _ = bufReader.ReadString('\n')
+		agent2Format = format
+		return nil
+	})
+	_ = agent1.Require(agent2)
+	buffer := strings.NewReader("hello, world\n")
+	reader := io.NewSectionReader(buffer, 0, buffer.Size())
+	agent1.update(reader, "123")
+	expectedSettings := "hello, world\n"
+	expectedFormat := "123"
+	assert.Equal(expectedSettings, agent1Settings)
+	assert.Equal(expectedSettings, agent2Settings)
+	assert.Equal(expectedFormat, agent1Format)
+	assert.Equal(expectedFormat, agent2Format)
 }
