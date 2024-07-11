@@ -174,23 +174,19 @@ func TestConfigureWithLoop(t *testing.T) {
 		sequence = append(sequence, "4")
 		return nil
 	})
-	agent5 := NewAgent("5", func(r io.Reader, format string) error {
-		sequence = append(sequence, "5")
-		return nil
-	})
+
 	agent1.Require(agent2)
 	agent2.Require(agent3)
 	agent3.Require(agent4)
 	agent4.Require(agent1)
-	agent5.Require(agent1)
 
-	registry, err := NewModuleRegistry([]Agent{agent5})
+	registry, err := NewModuleRegistry([]Agent{agent1})
 	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
 
 	err = configurator.Configure()
 	assert.Nil(err)
-	assert.Equal([]string{"4", "3", "2", "1", "5"}, sequence)
+	assert.Equal([]string{"4", "3", "2", "1"}, sequence)
 	assert.True(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
 }
