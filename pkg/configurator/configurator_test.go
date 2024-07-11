@@ -126,13 +126,13 @@ func TestConfigure2LevelHierarchy(t *testing.T) {
 	path, err := filepath.Abs("../../test/configurator/test.config.yaml")
 	assert.Nil(err)
 	now := time.Now()
-	secuence := make([]string, 0)
+	sequence := make([]string, 0)
 	agent1 := NewAgent("1", func(r io.Reader, format string) error {
-		secuence = append(secuence, "1")
+		sequence = append(sequence, "1")
 		return nil
 	})
 	agent2 := NewAgent("2", func(r io.Reader, format string) error {
-		secuence = append(secuence, "2")
+		sequence = append(sequence, "2")
 		return nil
 	})
 	agent1.Require(agent2)
@@ -143,7 +143,7 @@ func TestConfigure2LevelHierarchy(t *testing.T) {
 
 	err = configurator.Configure()
 	assert.Nil(err)
-	assert.Equal([]string{"2", "1"}, secuence)
+	assert.Equal([]string{"2", "1"}, sequence)
 	assert.True(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
 }
