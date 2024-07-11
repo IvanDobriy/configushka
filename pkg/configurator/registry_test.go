@@ -1,8 +1,10 @@
 package configurator
 
 import (
+	"cmp"
 	assertions "github.com/stretchr/testify/assert"
 	"io"
+	"slices"
 	"testing"
 )
 
@@ -74,5 +76,8 @@ func Test2LevelHierarchy(t *testing.T) {
 	registry := NewModuleRegistry([]Agent{agent1})
 	expectedAgents := []Agent{agent1, agent2, agent3}
 	agents := registry.getAll()
+	slices.SortFunc(agents, func(a, b Agent) int {
+		return cmp.Compare(a.moduleName(), b.moduleName())
+	})
 	assert.Equal(expectedAgents, agents)
 }
