@@ -96,3 +96,54 @@ func TestConfigureFormatAlwaysLowerCase(t *testing.T) {
 	assert.Equal("yaml", agent1Format)
 	assert.True(agent1.isConfigured(now))
 }
+
+func TestConfigureTwoAgents(t *testing.T) {
+	assert := assertions.New(t)
+	path, err := filepath.Abs("../../test/configurator/test.config.yaml")
+	assert.Nil(err)
+	now := time.Now()
+
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		return nil
+	})
+
+	registry := NewModuleRegistry([]Agent{agent1, agent2})
+
+	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
+
+	err = configurator.Configure()
+	assert.Nil(err)
+
+	assert.True(agent1.isConfigured(now))
+	assert.True(agent2.isConfigured(now))
+}
+
+func TestConfigure2LevelHierarchy(t *testing.T) {
+	assert := assertions.New(t)
+	path, err := filepath.Abs("../../test/configurator/test.config.yaml")
+	assert.Nil(err)
+	now := time.Now()
+	secuence := make([]string, 0)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		secuence = append(secuence, "1")
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		secuence = append(secuence, "2")
+		return nil
+	})
+	agent1.Require(agent2)
+
+	registry := NewModuleRegistry([]Agent{agent1, agent2})
+
+	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
+
+	err = configurator.Configure()
+	assert.Nil(err)
+	assert.Equal([]string{"2", "1"}, secuence)
+	assert.True(agent1.isConfigured(now))
+	assert.True(agent2.isConfigured(now))
+}
