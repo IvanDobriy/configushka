@@ -64,7 +64,11 @@ func (a *agentImpl) update(r io.ReadSeeker, format string) error {
 	if a.isConfigured(now) {
 		return nil
 	}
-	r.Seek(0, 0)
+	
+	if _, err := r.Seek(0, 0); err != nil {
+		return err
+	}
+
 	if err := a.updateCallback(r, format); err != nil {
 		return err
 	}
