@@ -26,6 +26,7 @@ func NewAgent(name string, updateCallback UpdateFunc) Agent {
 		childrens:      make(map[string]Agent),
 		updateCallback: updateCallback,
 		time:           nil,
+		isHandled:      false,
 	}
 	return agent
 }
@@ -36,6 +37,7 @@ type agentImpl struct {
 	childrens      map[string]Agent
 	updateCallback UpdateFunc
 	time           *time.Time
+	isHandled      bool
 }
 
 func (a *agentImpl) Require(agent Agent) error {
@@ -46,9 +48,11 @@ func (a *agentImpl) Require(agent Agent) error {
 
 func (a *agentImpl) update(r io.ReadSeeker, format string) error {
 	now := time.Now()
-	if a.isConfigured(now) {
+	if a.isHandled {
 		return nil
 	}
+	a.isHandled = true
+
 	var leaf Agent = nil
 	for _, agent := range a.childrens {
 		if !agent.isConfigured(now) {
@@ -64,7 +68,7 @@ func (a *agentImpl) update(r io.ReadSeeker, format string) error {
 	if a.isConfigured(now) {
 		return nil
 	}
-	
+
 	if _, err := r.Seek(0, 0); err != nil {
 		return err
 	}

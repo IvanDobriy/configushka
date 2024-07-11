@@ -228,3 +228,34 @@ func TestReplacementNoError(t *testing.T) {
 	err = agent1.signUp(registry)
 	assert.Nil(err)
 }
+
+func TestUpdateLoop(t *testing.T) {
+	assert := assertions.New(t)
+	sequence := make([]string, 0)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		sequence = append(sequence, "1")
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		sequence = append(sequence, "2")
+		return nil
+	})
+	agent3 := NewAgent("3", func(r io.Reader, format string) error {
+		sequence = append(sequence, "3")
+		return nil
+	})
+	agent4 := NewAgent("4", func(r io.Reader, format string) error {
+		sequence = append(sequence, "4")
+		return nil
+	})
+	agent1.Require(agent2)
+	agent2.Require(agent3)
+	agent3.Require(agent4)
+	agent4.Require(agent1)
+
+	buffer := strings.NewReader("hello, world\n")
+	reader := io.NewSectionReader(buffer, 0, buffer.Size())
+	agent1.update(reader, "123")
+
+	assert.Equal([]string{"4", "3", "2", "1"}, sequence)
+}
