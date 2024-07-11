@@ -85,7 +85,7 @@ func (a *agentImpl) addParent(agent Agent) error {
 }
 
 func (a *agentImpl) childrenExists() bool {
-	return len(a.parents) > 0
+	return len(a.childrens) > 0
 }
 
 func (a *agentImpl) isConfigured(time time.Time) bool {
