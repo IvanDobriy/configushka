@@ -178,3 +178,22 @@ func TestUpdateChildReturnError(t *testing.T) {
 	assert.False(agent1.isConfigured(now))
 	assert.False(agent2.isConfigured(now))
 }
+
+func TestUpdateRootReturnError(t *testing.T) {
+	assert := assertions.New(t)
+	now := time.Now()
+	someError := errors.New("some error")
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		return someError
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		return nil
+	})
+	_ = agent1.Require(agent2)
+	buffer := strings.NewReader("hello, world\n")
+	reader := io.NewSectionReader(buffer, 0, buffer.Size())
+	err := agent1.update(reader, "123")
+	assert.Equal(someError, err)
+	assert.False(agent1.isConfigured(now))
+	assert.True(agent2.isConfigured(now))
+}
