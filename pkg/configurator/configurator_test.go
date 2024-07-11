@@ -151,3 +151,46 @@ func TestConfigure2LevelHierarchy(t *testing.T) {
 	assert.True(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
 }
+
+func TestConfigureWithLoop(t *testing.T) {
+	assert := assertions.New(t)
+	path, err := filepath.Abs("../../test/configurator/test.config.yaml")
+	assert.Nil(err)
+	now := time.Now()
+	sequence := make([]string, 0)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		sequence = append(sequence, "1")
+		return nil
+	})
+	agent2 := NewAgent("2", func(r io.Reader, format string) error {
+		sequence = append(sequence, "2")
+		return nil
+	})
+	agent3 := NewAgent("3", func(r io.Reader, format string) error {
+		sequence = append(sequence, "3")
+		return nil
+	})
+	agent4 := NewAgent("4", func(r io.Reader, format string) error {
+		sequence = append(sequence, "4")
+		return nil
+	})
+	agent5 := NewAgent("5", func(r io.Reader, format string) error {
+		sequence = append(sequence, "5")
+		return nil
+	})
+	agent1.Require(agent2)
+	agent2.Require(agent3)
+	agent3.Require(agent4)
+	agent4.Require(agent1)
+	agent5.Require(agent1)
+
+	registry, err := NewModuleRegistry([]Agent{agent5})
+	assert.Nil(err)
+	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
+
+	err = configurator.Configure()
+	assert.Nil(err)
+	assert.Equal([]string{"4", "3", "2", "1", "5"}, sequence)
+	assert.True(agent1.isConfigured(now))
+	assert.True(agent2.isConfigured(now))
+}
