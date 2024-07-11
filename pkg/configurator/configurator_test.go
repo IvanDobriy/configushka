@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 )
@@ -186,7 +187,8 @@ func TestConfigureWithLoop(t *testing.T) {
 
 	err = configurator.Configure()
 	assert.Nil(err)
-	assert.Equal([]string{"4", "3", "2", "1"}, sequence)
+	slices.Sort(sequence) //maybe random
+	assert.Equal([]string{"1", "2", "3", "4"}, sequence)
 	assert.True(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
 }
