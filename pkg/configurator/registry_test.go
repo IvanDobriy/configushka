@@ -51,7 +51,7 @@ func TestSetEmptyRegistry(t *testing.T) {
 	assert.Equal([]Agent{expectedAgent}, agents)
 }
 
-func TestHierarchy(t *testing.T) {
+func TestDeepHierarchy(t *testing.T) {
 	assert := assertions.New(t)
 	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
 	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
@@ -59,7 +59,20 @@ func TestHierarchy(t *testing.T) {
 	agent1.Require(agent2)
 	agent2.Require(agent3)
 	registry := NewModuleRegistry([]Agent{agent1})
-	epectedAgents := []Agent{agent1, agent2, agent3}
+	expectedAgents := []Agent{agent1, agent2, agent3}
 	agents := registry.getAll()
-	assert.Equal(epectedAgents, agents)
+	assert.Equal(expectedAgents, agents)
+}
+
+func Test2LevelHierarchy(t *testing.T) {
+	assert := assertions.New(t)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
+	agent3 := NewAgent("3", func(r io.Reader, format string) error { return nil })
+	agent1.Require(agent2)
+	agent1.Require(agent3)
+	registry := NewModuleRegistry([]Agent{agent1})
+	expectedAgents := []Agent{agent1, agent2, agent3}
+	agents := registry.getAll()
+	assert.Equal(expectedAgents, agents)
 }
