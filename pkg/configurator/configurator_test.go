@@ -77,3 +77,22 @@ func TestConfigureFileNotFound(t *testing.T) {
 	assert.Equal("", agent1Config)
 	assert.False(agent1.isConfigured(now))
 }
+
+func TestConfigureFormatAlwaysLowerCase(t *testing.T) {
+	assert := assertions.New(t)
+	path, err := filepath.Abs("../../test/configurator/test.config.yaml")
+	assert.Nil(err)
+	now := time.Now()
+	agent1Format := ""
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		agent1Format = format
+		return nil
+	})
+	registry := NewModuleRegistry([]Agent{agent1})
+	configurator := NewLocalConfigurator(registry, []string{path}, "yAmL")
+
+	err = configurator.Configure()
+	assert.Nil(err)
+	assert.Equal("yaml", agent1Format)
+	assert.True(agent1.isConfigured(now))
+}
