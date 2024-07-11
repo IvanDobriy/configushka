@@ -41,6 +41,9 @@ func TestGetRegistry(t *testing.T) {
 	assert.Equal("3", agent.moduleName())
 
 	agentList := registry.getAll()
+	slices.SortFunc(agentList, func(a, b Agent) int {
+		return cmp.Compare(a.moduleName(), b.moduleName())
+	})
 	assert.Equal(agents, agentList)
 }
 
@@ -110,4 +113,23 @@ func TestLoop(t *testing.T) {
 	})
 	expectedAgents := []Agent{agent1, agent2, agent3, agent4}
 	assert.Equal(expectedAgents, agents)
+}
+
+func TestTestReplacement(t *testing.T) {
+	assert := assertions.New(t)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+	agent2 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+
+	registry, err := NewModuleRegistry([]Agent{agent1, agent2})
+	assert.NotNil(err)
+	assert.Nil(registry)
+}
+
+func TestTestReplacementNoError(t *testing.T) {
+	assert := assertions.New(t)
+	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
+
+	registry, err := NewModuleRegistry([]Agent{agent1, agent1})
+	assert.Nil(err)
+	assert.NotNil(registry)
 }
