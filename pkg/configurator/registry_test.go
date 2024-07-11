@@ -85,24 +85,23 @@ func Test2LevelHierarchy(t *testing.T) {
 	assert.Equal(expectedAgents, agents)
 }
 
-// TODO LOOP CHECK
 func TestLoop(t *testing.T) {
-	t.Skip("need add loop check, now panic")
 	assert := assertions.New(t)
 	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
 	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
 	agent3 := NewAgent("3", func(r io.Reader, format string) error { return nil })
 	agent4 := NewAgent("4", func(r io.Reader, format string) error { return nil })
-	agent5 := NewAgent("5", func(r io.Reader, format string) error { return nil })
 
 	agent1.Require(agent2)
 	agent2.Require(agent3)
 	agent3.Require(agent4)
 	agent4.Require(agent1)
-	agent5.Require(agent1)
 
-	registry := NewModuleRegistry([]Agent{agent5})
+	registry := NewModuleRegistry([]Agent{agent1})
 	agents := registry.getAll()
-	expectedAgents := []Agent{agent1, agent2}
+	slices.SortFunc(agents, func(a, b Agent) int {
+		return cmp.Compare(a.moduleName(), b.moduleName())
+	})
+	expectedAgents := []Agent{agent1, agent2, agent3, agent4}
 	assert.Equal(expectedAgents, agents)
 }
