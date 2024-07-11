@@ -6,14 +6,16 @@ type Registry interface {
 	getAll() []Agent
 }
 
-func NewModuleRegistry(rootAgents []Agent) Registry {
+func NewModuleRegistry(rootAgents []Agent) (Registry, error) {
 	r := &moduleRegistry{
 		agents: make(map[string]Agent),
 	}
 	for _, agent := range rootAgents {
-		agent.signUp(r)
+		if err := agent.signUp(r); err != nil {
+			return nil, err
+		}
 	}
-	return r
+	return r, nil
 }
 
 type moduleRegistry struct {

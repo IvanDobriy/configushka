@@ -1,6 +1,8 @@
 package configurator
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"time"
 )
@@ -14,7 +16,7 @@ type Agent interface {
 	childrenExists() bool
 	moduleName() string
 	isConfigured(time time.Time) bool
-	signUp(registry Registry)
+	signUp(registry Registry) error
 }
 
 func NewAgent(name string, updateCallback UpdateFunc) Agent {
@@ -92,12 +94,19 @@ func (a *agentImpl) isConfigured(time time.Time) bool {
 	return a.time != nil
 }
 
-func (a *agentImpl) signUp(registry Registry) {
-	if registry.get(a.name) != nil {
-		return
+func (a *agentImpl) signUp(registry Registry) error {
+	oldAgent := registry.get(a.name)
+	if oldAgent != nil {
+		if oldAgent != a {
+			return errors.New(fmt.Sprintf("found different agents with same name %v", a.name))
+		}
+		return nil
 	}
 	registry.set(a.name, a)
 	for _, agent := range a.childrens {
-		agent.signUp(registry)
+		if err := agent.signUp(registry); err != nil {
+			return err
+		}
 	}
+	return nil
 }

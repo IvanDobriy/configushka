@@ -23,7 +23,8 @@ func TestConfigure(t *testing.T) {
 		agent1Config = string(buffer)
 		return ioerr
 	})
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
 
 	err = configurator.Configure()
@@ -49,7 +50,8 @@ func TestConfigureSecondPathExists(t *testing.T) {
 		agent1Config = string(buffer)
 		return ioerr
 	})
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{wrongPath, path}, "yaml")
 
 	err = configurator.Configure()
@@ -70,7 +72,8 @@ func TestConfigureFileNotFound(t *testing.T) {
 		agent1Config = string(buffer)
 		return ioerr
 	})
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{wrongPath}, "yaml")
 	err = configurator.Configure()
 	assert.NotNil(err)
@@ -88,7 +91,8 @@ func TestConfigureFormatAlwaysLowerCase(t *testing.T) {
 		agent1Format = format
 		return nil
 	})
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{path}, "yAmL")
 
 	err = configurator.Configure()
@@ -110,8 +114,8 @@ func TestConfigureTwoAgents(t *testing.T) {
 		return nil
 	})
 
-	registry := NewModuleRegistry([]Agent{agent1, agent2})
-
+	registry, err := NewModuleRegistry([]Agent{agent1, agent2})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
 
 	err = configurator.Configure()
@@ -137,8 +141,8 @@ func TestConfigure2LevelHierarchy(t *testing.T) {
 	})
 	agent1.Require(agent2)
 
-	registry := NewModuleRegistry([]Agent{agent1, agent2})
-
+	registry, err := NewModuleRegistry([]Agent{agent1, agent2})
+	assert.Nil(err)
 	configurator := NewLocalConfigurator(registry, []string{path}, "yaml")
 
 	err = configurator.Configure()

@@ -97,7 +97,8 @@ func TestSignUp(t *testing.T) {
 	agent1 := NewAgent("1", func(r io.Reader, format string) error { return nil })
 	agent2 := NewAgent("2", func(r io.Reader, format string) error { return nil })
 	_ = agent1.Require(agent2)
-	registry := NewModuleRegistry([]Agent{})
+	registry, err := NewModuleRegistry([]Agent{})
+	assert.Nil(err)
 	agent1.signUp(registry)
 	result := registry.getAll()
 	slices.SortFunc(result, func(a, b Agent) int {

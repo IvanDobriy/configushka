@@ -10,7 +10,8 @@ import (
 
 func TestGetEmptyRegistry(t *testing.T) {
 	assert := assertions.New(t)
-	registry := NewModuleRegistry([]Agent{})
+	registry, err := NewModuleRegistry([]Agent{})
+	assert.Nil(err)
 	agents := registry.getAll()
 	assert.Empty(agents)
 	agent := registry.get("123")
@@ -30,7 +31,8 @@ func TestGetRegistry(t *testing.T) {
 		}),
 	}
 	assert := assertions.New(t)
-	registry := NewModuleRegistry(agents)
+	registry, err := NewModuleRegistry(agents)
+	assert.Nil(err)
 	agent := registry.get("1")
 	assert.Equal("1", agent.moduleName())
 	agent = registry.get("2")
@@ -44,7 +46,8 @@ func TestGetRegistry(t *testing.T) {
 
 func TestSetEmptyRegistry(t *testing.T) {
 	assert := assertions.New(t)
-	registry := NewModuleRegistry([]Agent{})
+	registry, err := NewModuleRegistry([]Agent{})
+	assert.Nil(err)
 	expectedAgent := NewAgent("44", func(r io.Reader, format string) error { return nil })
 	registry.set("44", expectedAgent)
 	agent := registry.get("44")
@@ -60,7 +63,8 @@ func TestDeepHierarchy(t *testing.T) {
 	agent3 := NewAgent("3", func(r io.Reader, format string) error { return nil })
 	agent1.Require(agent2)
 	agent2.Require(agent3)
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	expectedAgents := []Agent{agent1, agent2, agent3}
 	agents := registry.getAll()
 	slices.SortFunc(agents, func(a, b Agent) int {
@@ -76,7 +80,8 @@ func Test2LevelHierarchy(t *testing.T) {
 	agent3 := NewAgent("3", func(r io.Reader, format string) error { return nil })
 	agent1.Require(agent2)
 	agent1.Require(agent3)
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	expectedAgents := []Agent{agent1, agent2, agent3}
 	agents := registry.getAll()
 	slices.SortFunc(agents, func(a, b Agent) int {
@@ -97,7 +102,8 @@ func TestLoop(t *testing.T) {
 	agent3.Require(agent4)
 	agent4.Require(agent1)
 
-	registry := NewModuleRegistry([]Agent{agent1})
+	registry, err := NewModuleRegistry([]Agent{agent1})
+	assert.Nil(err)
 	agents := registry.getAll()
 	slices.SortFunc(agents, func(a, b Agent) int {
 		return cmp.Compare(a.moduleName(), b.moduleName())
