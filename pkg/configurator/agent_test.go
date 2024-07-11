@@ -198,3 +198,20 @@ func TestUpdateRootReturnError(t *testing.T) {
 	assert.False(agent1.isConfigured(now))
 	assert.True(agent2.isConfigured(now))
 }
+
+func TestReplacement(t *testing.T) {
+	assert := assertions.New(t)
+	someError := errors.New("some error")
+	agent1 := NewAgent("1", func(r io.Reader, format string) error {
+		return someError
+	})
+	agent2 := NewAgent("1", func(r io.Reader, format string) error {
+		return nil
+	})
+	agent1.Require(agent2)
+
+	registry, err := NewModuleRegistry([]Agent{})
+	assert.Nil(err)
+	err = agent1.signUp(registry)
+	assert.NotNil(err)
+}
