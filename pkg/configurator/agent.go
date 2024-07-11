@@ -95,6 +95,6 @@ func (a *agentImpl) isConfigured(time time.Time) bool {
 func (a *agentImpl) signUp(registry Registry) {
 	registry.set(a.name, a)
 	for _, agent := range a.childrens {
-		registry.set(agent.moduleName(), agent)
+		agent.signUp(registry)
 	}
 }
